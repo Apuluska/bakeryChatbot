@@ -1,9 +1,23 @@
 var express = require('express');
 var app = express();
 var rp = require('request-promise');
+const https = require('https');
+const fs = require('fs');
 
-var textList = ['hola', 'menu', 'adios'];
-var answerList = ['Buenos dias, bienvenido a BakeryChatbot', 'nuestro menu del día es: ', 'hasta otra, gracias por venir '];
+
+const options = {
+    key: fs.readFileSync('test/fixtures/keys/agent2-key.pem'),
+    cert: fs.readFileSync('test/fixtures/keys/agent2-cert.pem')
+  };
+  
+  https.createServer(options, (req, res) => {
+    res.writeHead(200);
+    res.end('bakery\n');
+  }).listen(3000);
+  
+//Array options to question & answer, next versions, better in a Database
+var textList = ['hello', 'menu', 'bye', ''];
+var answerList = ['Good morning! welcome to BakeryChatbot', 'Our daily menu is: ', 'See you soon!, thanks for coming', 'Please, wait while you`ll be attendant. For today, this is our menu: '];
 
 
 app.get("/", (req, res)=> {
@@ -11,38 +25,49 @@ app.get("/", (req, res)=> {
    res.send("Hello from Root")
 })
 
-
 /// SERVER IS LISTENING
 app.listen(3000, ()=> {
     console.log("Server is ok")
 })
+/////////////////////////
+//Connect with the API
 async function getMenu() {
-    var a = await rp('https://xz94zfs6u8.execute-api.eu-west-1.amazonaws.com/default/myBakery')
+    var menuApi = await rp('https://xz94zfs6u8.execute-api.eu-west-1.amazonaws.com/default/myBakery')
     .then(function(htmlString) {
         return htmlString;
     });  
-    return a;
+    return menuApi;
 }
-
-async function getResponse(key) {
-    if (key.includes(textList[0])) {
+//Options to answer
+async function getResponse(clientQuestion) {
+    if (clientQuestion.includes(textList[0])) {
         return answerList[0];   
     }
-    if (key.includes(textList[1])) {
-        var a = answerList[1]+ await getMenu();
-        return a;   
+    if (clientQuestion.includes(textList[1])) {
+        var giveAnswer = answerList[1]+ await getMenu();
+        return giveAnswer;   
+    } if (clientQuestion.includes(textList[2])) {
+            var giveAnswer = answerList[2];
+            return giveAnswer;   
     } else {
-        return answerList[2];
+        return answerList[3]+ await getMenu();
     }
  }
+
+ //testing
  async function initChatbot(){
-    var hola= await getResponse('hola chat');
-     var op= await getResponse('quiero saber el menu del dia');
-     var adios= await getResponse('adios chat');
-     console.log(hola);
-     console.log(op);
-     console.log(adios);
+    var hello= await getResponse('hello chat');
+     var menu= await getResponse('Tell me your daily menu');
+     var seeYou= await getResponse('bye');
+     var nothing= await getResponse('nothing');
+
+     console.log(hello);
+     console.log(menu);
+     console.log(seeYou);
+     console.log(nothing);
+
  }
+
 initChatbot();
 
  
