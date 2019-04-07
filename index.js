@@ -25,7 +25,7 @@ async function getMenu() {
 }
 
 async function getResponse(key) {
-    if (key === textList[0]) {
+    if (key.includes(textList[0])) {
         return answerList[0];   
     }
     if (key.includes(textList[1])) {
@@ -36,8 +36,12 @@ async function getResponse(key) {
     }
  }
  async function initChatbot(){
+    var hola= await getResponse('hola chat');
      var op= await getResponse('quiero saber el menu del dia');
+     var adios= await getResponse('adios chat');
+     console.log(hola);
      console.log(op);
+     console.log(adios);
  }
 initChatbot();
 
